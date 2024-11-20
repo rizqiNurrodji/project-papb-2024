@@ -1,10 +1,10 @@
 package com.example.bwurger;
 
-public class rotiModel {
+public class pilihanBahanModel {
     public String nama;
     public String gambarUrl;
 
-    public rotiModel(String nama, String gambarUrl) {
+    public pilihanBahanModel(String nama, String gambarUrl) {
         this.nama = nama;
         this.gambarUrl = gambarUrl;
     }

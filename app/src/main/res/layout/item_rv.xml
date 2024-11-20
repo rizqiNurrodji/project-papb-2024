@@ -19,7 +19,7 @@
             android:padding="20dp">
 
             <ImageButton
-                android:id="@+id/btRotiPilihan"
+                android:id="@+id/btBahanPilihan"
                 android:layout_width="150dp"
                 android:layout_height="150dp"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -31,11 +31,11 @@
                 android:scaleType="fitCenter"/>
 
             <TextView
-                android:id="@+id/tvNamaBun"
+                android:id="@+id/tvBahanPilihan"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:text="Nama Bun"
+                android:text="Nama bahan"
                 android:textAlignment="center"
                 android:textIsSelectable="false"
                 android:textSize="24sp"
@@ -43,7 +43,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/btRotiPilihan" />
+                app:layout_constraintTop_toBottomOf="@id/btBahanPilihan" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>

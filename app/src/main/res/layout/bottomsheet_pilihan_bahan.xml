@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/activityPilihanRoti"
+    android:id="@+id/bottomSheetPilihanBahan"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_pilihan"
@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"/>
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/cvPilihanRoti"
+        android:id="@+id/cvPilihanBahan"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="20dp">
@@ -23,7 +23,7 @@
             android:layout_height="match_parent">
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvPilihanRoti"
+                android:id="@+id/rvPilihanBahan"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:layout_constraintBottom_toBottomOf="parent"
