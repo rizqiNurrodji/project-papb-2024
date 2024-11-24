@@ -12,6 +12,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonArrayRequest;
@@ -23,9 +24,9 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements rvPilihanBahanAdapter.OnBahanClickListener {
 
-    private Button btRoti, btDaging, btPelengkap, btSaus, selectedButton;
+    private Button btRoti, btDaging, btPelengkap, btSaus, selectedButton,btBuatanSaya,btTersimpan;
     private ImageButton btBack;
     private FragmentManager fragmentManager;
     private BottomSheetDialog bottomSheetDialog;
@@ -45,15 +46,24 @@ public class MainActivity extends AppCompatActivity {
         btPelengkap = findViewById(R.id.btPelengkap);
         btSaus = findViewById(R.id.btSaus);
         btBack = findViewById(R.id.btBack);
+        btBuatanSaya = findViewById(R.id.btBuatanSaya);
+        btTersimpan = findViewById(R.id.btTersimpan);
 
         // Set initial selected button
-        selectedButton = null;
+        selectedButton = btBuatanSaya;
 
         // Set listener untuk tombol bahan
         btRoti.setOnClickListener(view -> handleButtonClick(btRoti, "listPilihanRoti.php"));
         btDaging.setOnClickListener(view -> handleButtonClick(btDaging, "listPilihanDaging.php"));
         btPelengkap.setOnClickListener(view -> handleButtonClick(btPelengkap, "listPilihanPelengkap.php"));
         btSaus.setOnClickListener(view -> handleButtonClick(btSaus, "listPilihanSaus.php"));
+
+        btTersimpan.setOnClickListener(v -> {
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.replace(R.id.fragment_container, new fragmentBurgerTersimpan());
+            fragmentTransaction.addToBackStack(null);
+            fragmentTransaction.commit();
+        });
 
         // Set listener untuk tombol kembali
         btBack.setOnClickListener(view -> handleBackAction());
@@ -73,8 +83,8 @@ public class MainActivity extends AppCompatActivity {
         RecyclerView recyclerView = bottomSheetView.findViewById(R.id.rvPilihanBahan);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
 
-        // Inisialisasi adapter
-        adapter = new rvPilihanBahanAdapter(this, pilihanBahanModelArrayList);
+        // Inisialisasi adapter dan mengirim callback ke MainActivity
+        adapter = new rvPilihanBahanAdapter(this, pilihanBahanModelArrayList, this);
 
         // Set adapter ke RecyclerView
         recyclerView.setAdapter(adapter);
@@ -89,9 +99,9 @@ public class MainActivity extends AppCompatActivity {
         selectedButton = button;
 
         // Pindah ke fragmentPilihanBahan
-        if (!(fragmentManager.findFragmentById(R.id.fragment_container) instanceof fragmentPilihanBahan)) {
+        if (!(fragmentManager.findFragmentById(R.id.fragment_container) instanceof fragmentBahanTerpilih)) {
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-            fragmentTransaction.replace(R.id.fragment_container, new fragmentPilihanBahan());
+            fragmentTransaction.replace(R.id.fragment_container, new fragmentBahanTerpilih());
             fragmentTransaction.addToBackStack(null);
             fragmentTransaction.commit();
         }
@@ -99,11 +109,10 @@ public class MainActivity extends AppCompatActivity {
         // Fetch data and show BottomSheet
         fetchDataFromServer(endpoint);
         bottomSheetDialog.show();
-
     }
 
     private void fetchDataFromServer(String endpoint) {
-        String baseUrl = "http://192.168.1.27/projectPAM/";
+        String baseUrl = "http://192.168.1.7/projectPAM/";
         String url = baseUrl + endpoint;
 
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, url, null,
@@ -126,6 +135,16 @@ public class MainActivity extends AppCompatActivity {
         Volley.newRequestQueue(this).add(jsonArrayRequest);
     }
 
+    @Override
+    public void onBahanClick(pilihanBahanModel bahan) {
+        // Dapatkan fragmentBahanTerpilih yang ada
+        fragmentBahanTerpilih fragmentBahanTerpilih = (fragmentBahanTerpilih) fragmentManager.findFragmentById(R.id.fragment_container);
+        if (fragmentBahanTerpilih != null) {
+            fragmentBahanTerpilih.addSelectedBahan(bahan);  // Menambahkan bahan yang dipilih ke fragment
+        }
+    }
+
+
     private void handleBackAction() {
         if (fragmentManager.getBackStackEntryCount() > 0) {
             fragmentManager.popBackStack();
@@ -133,4 +152,6 @@ public class MainActivity extends AppCompatActivity {
             finish();
         }
     }
+
+
 }

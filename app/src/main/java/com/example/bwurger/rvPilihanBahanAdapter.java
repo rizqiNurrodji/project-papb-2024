@@ -19,36 +19,42 @@ public class rvPilihanBahanAdapter extends RecyclerView.Adapter<rvPilihanBahanAd
 
     private Context context;
     private ArrayList<pilihanBahanModel> pilihanBahanModelArrayList;
+    private OnBahanClickListener onBahanClickListener;
 
-    public rvPilihanBahanAdapter(Context context, ArrayList<pilihanBahanModel> pilihanBahanModelArrayList) {
+    // Interface untuk mendengarkan klik bahan
+    public interface OnBahanClickListener {
+        void onBahanClick(pilihanBahanModel bahan);
+    }
+
+    public rvPilihanBahanAdapter(Context context, ArrayList<pilihanBahanModel> pilihanBahanModelArrayList, OnBahanClickListener onBahanClickListener) {
         this.context = context;
         this.pilihanBahanModelArrayList = pilihanBahanModelArrayList;
+        this.onBahanClickListener = onBahanClickListener;
     }
 
     @NonNull
     @Override
     public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Inflate the layout for each item in the RecyclerView
         View view = LayoutInflater.from(context).inflate(R.layout.item_rv, parent, false);
         return new MyViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
-        // Get the current item (roti) from the list
         pilihanBahanModel currentBahan = pilihanBahanModelArrayList.get(position);
 
-        // Use Glide to load the image URL into the ImageButton
+        // Use Glide to load image into the ImageButton
         Glide.with(context)
-                .load(currentBahan.getGambarUrl())  // URL of the image
-                .into(holder.btBahanPilihan);  // Target ImageButton
+                .load(currentBahan.getGambarUrl())
+                .into(holder.btBahanPilihan);
 
-        // Set the name of the roti
         holder.tvBahanPilihan.setText(currentBahan.getNamaUrl());
 
-        // Set up a click listener for the ImageButton
+        // Set up the click listener for the ImageButton
         holder.btBahanPilihan.setOnClickListener(v -> {
-            Toast.makeText(context, "Anda memilih " + currentBahan.getNamaUrl(), Toast.LENGTH_SHORT).show();
+            if (onBahanClickListener != null) {
+                onBahanClickListener.onBahanClick(currentBahan);
+            }
         });
     }
 
@@ -57,15 +63,12 @@ public class rvPilihanBahanAdapter extends RecyclerView.Adapter<rvPilihanBahanAd
         return pilihanBahanModelArrayList.size();
     }
 
-    // ViewHolder class to hold views for each item
     public static class MyViewHolder extends RecyclerView.ViewHolder {
-
         ImageButton btBahanPilihan;
         TextView tvBahanPilihan;
 
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
-            // Initialize the views
             btBahanPilihan = itemView.findViewById(R.id.btBahanPilihan);
             tvBahanPilihan = itemView.findViewById(R.id.tvBahanPilihan);
         }
