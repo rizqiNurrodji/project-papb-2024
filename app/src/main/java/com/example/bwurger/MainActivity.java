@@ -12,146 +12,128 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.room.Room;
 
-import com.android.volley.Request;
-import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.Volley;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements rvPilihanBahanAdapter.OnBahanClickListener {
+public class MainActivity extends AppCompatActivity {
 
-    private Button btRoti, btDaging, btPelengkap, btSaus, selectedButton,btBuatanSaya,btTersimpan;
+    private Button btRoti, btDaging, btPelengkap, btSaus;
     private ImageButton btBack;
-    private FragmentManager fragmentManager;
     private BottomSheetDialog bottomSheetDialog;
     private ArrayList<pilihanBahanModel> pilihanBahanModelArrayList = new ArrayList<>();
     private rvPilihanBahanAdapter adapter;
+    private Button lastSelectedButton; // Menyimpan tombol terakhir yang dipilih
+    private ArrayList<pilihanBahanModel> selectedBahanList = new ArrayList<>(); // Daftar bahan yang dipilih
+    private fragmentBahanTerpilih fragmentBahanTerpilih;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        fragmentManager = getSupportFragmentManager();
-        initBottomSheet();
-
         btRoti = findViewById(R.id.btRoti);
         btDaging = findViewById(R.id.btDaging);
         btPelengkap = findViewById(R.id.btPelengkap);
         btSaus = findViewById(R.id.btSaus);
         btBack = findViewById(R.id.btBack);
-        btBuatanSaya = findViewById(R.id.btBuatanSaya);
-        btTersimpan = findViewById(R.id.btTersimpan);
 
-        // Set initial selected button
-        selectedButton = btBuatanSaya;
-
-        // Set listener untuk tombol bahan
-        btRoti.setOnClickListener(view -> handleButtonClick(btRoti, "listPilihanRoti.php"));
-        btDaging.setOnClickListener(view -> handleButtonClick(btDaging, "listPilihanDaging.php"));
-        btPelengkap.setOnClickListener(view -> handleButtonClick(btPelengkap, "listPilihanPelengkap.php"));
-        btSaus.setOnClickListener(view -> handleButtonClick(btSaus, "listPilihanSaus.php"));
-
-        btTersimpan.setOnClickListener(v -> {
-            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-            fragmentTransaction.replace(R.id.fragment_container, new fragmentBurgerTersimpan());
-            fragmentTransaction.addToBackStack(null);
-            fragmentTransaction.commit();
+        // Inisialisasi adapter
+        adapter = new rvPilihanBahanAdapter(this, pilihanBahanModelArrayList, new rvPilihanBahanAdapter.OnBahanClickListener() {
+            @Override
+            public void onBahanClick(pilihanBahanModel bahan) {
+                addBahanToSelected(bahan);
+            }
         });
 
-        // Set listener untuk tombol kembali
-        btBack.setOnClickListener(view -> handleBackAction());
-
-        // Load fragmentMain sebagai fragment awal
+        // Load fragment awal
+        FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.replace(R.id.fragment_container, new fragmentMain());
         fragmentTransaction.commit();
+
+        // Klik button untuk memuat data kategori tertentu
+        btRoti.setOnClickListener(view -> handleButtonClick(btRoti, "Roti"));
+        btDaging.setOnClickListener(view -> handleButtonClick(btDaging, "Daging"));
+        btPelengkap.setOnClickListener(view -> handleButtonClick(btPelengkap, "Pelengkap"));
+        btSaus.setOnClickListener(view -> handleButtonClick(btSaus, "Saus"));
     }
 
-    private void initBottomSheet() {
+    private void handleButtonClick(Button selectedButton, String kategori) {
+        // Ubah warna tombol terakhir ke default jika ada
+        if (lastSelectedButton != null) {
+            lastSelectedButton.setBackgroundColor(ContextCompat.getColor(this, R.color.botBarGreen));
+        }
+
+        // Ubah warna tombol yang dipilih ke btYellow
+        selectedButton.setBackgroundColor(ContextCompat.getColor(this, R.color.btYellow));
+        lastSelectedButton = selectedButton; // Simpan tombol yang baru saja dipilih
+
+        // Load kategori bahan
+        loadKategori(kategori);
+
+        // Tampilkan fragment_bahan_terpilih dan BottomSheet
+        loadFragmentBahanTerpilih();
+        showBottomSheet();
+    }
+
+    private void loadKategori(String kategori) {
+        pilihanBahanModelArrayList.clear();
+
+        switch (kategori) {
+            case "Roti":
+                pilihanBahanModelArrayList.add(new pilihanBahanModel("Roti Brioche", "bun_brioche"));
+                pilihanBahanModelArrayList.add(new pilihanBahanModel("Roti Normal", "bun_normal"));
+                pilihanBahanModelArrayList.add(new pilihanBahanModel("Roti Pretzel", "bun_pretzel"));
+                pilihanBahanModelArrayList.add(new pilihanBahanModel("Roti Gandum", "bun_wheat"));
+                break;
+            case "Daging":
+                pilihanBahanModelArrayList.add(new pilihanBahanModel("Patty Ayam", "patty_chicken"));
+                pilihanBahanModelArrayList.add(new pilihanBahanModel("Patty Vegan", "patty_vegan"));
+                pilihanBahanModelArrayList.add(new pilihanBahanModel("Patty Normal", "patty_normal"));
+                break;
+            case "Pelengkap":
+                pilihanBahanModelArrayList.add(new pilihanBahanModel("Lettuce", "pelengkap_lettuce"));
+                break;
+            case "Saus":
+                pilihanBahanModelArrayList.add(new pilihanBahanModel("Saus Mustard", "sauce_mustard"));
+                pilihanBahanModelArrayList.add(new pilihanBahanModel("Saus Ketchup", "sauce_ketchup"));
+                break;
+        }
+
+        adapter.notifyDataSetChanged();
+    }
+
+    private void loadFragmentBahanTerpilih() {
+        if (fragmentBahanTerpilih == null) {
+            fragmentBahanTerpilih = new fragmentBahanTerpilih();
+        }
+
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        fragmentTransaction.replace(R.id.fragment_container, fragmentBahanTerpilih);
+        fragmentTransaction.addToBackStack(null);
+        fragmentTransaction.commit();
+    }
+
+    private void showBottomSheet() {
         bottomSheetDialog = new BottomSheetDialog(this);
-        View bottomSheetView = LayoutInflater.from(this).inflate(R.layout.bottomsheet_pilihan_bahan, null);
-        bottomSheetDialog.setContentView(bottomSheetView);
+        View sheetView = LayoutInflater.from(this).inflate(R.layout.bottomsheet_pilihan_bahan, null);
+        bottomSheetDialog.setContentView(sheetView);
 
-        // Inisialisasi RecyclerView
-        RecyclerView recyclerView = bottomSheetView.findViewById(R.id.rvPilihanBahan);
+        RecyclerView recyclerView = sheetView.findViewById(R.id.rvPilihanBahan);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
-
-        // Inisialisasi adapter dan mengirim callback ke MainActivity
-        adapter = new rvPilihanBahanAdapter(this, pilihanBahanModelArrayList, this);
-
-        // Set adapter ke RecyclerView
         recyclerView.setAdapter(adapter);
-    }
 
-    private void handleButtonClick(Button button, String endpoint) {
-        // Update button colors
-        if (selectedButton != null) {
-            selectedButton.setBackgroundColor(ContextCompat.getColor(this, android.R.color.transparent));
-        }
-        button.setBackgroundColor(ContextCompat.getColor(this, R.color.btYellow));
-        selectedButton = button;
-
-        // Pindah ke fragmentPilihanBahan
-        if (!(fragmentManager.findFragmentById(R.id.fragment_container) instanceof fragmentBahanTerpilih)) {
-            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-            fragmentTransaction.replace(R.id.fragment_container, new fragmentBahanTerpilih());
-            fragmentTransaction.addToBackStack(null);
-            fragmentTransaction.commit();
-        }
-
-        // Fetch data and show BottomSheet
-        fetchDataFromServer(endpoint);
         bottomSheetDialog.show();
     }
 
-    private void fetchDataFromServer(String endpoint) {
-        String baseUrl = "http://192.168.1.7/projectPAM/";
-        String url = baseUrl + endpoint;
-
-        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, url, null,
-                response -> {
-                    pilihanBahanModelArrayList.clear();
-                    for (int i = 0; i < response.length(); i++) {
-                        try {
-                            JSONObject item = response.getJSONObject(i);
-                            String nama = item.getString("nama");
-                            String gambarUrl = item.getString("image");
-                            pilihanBahanModelArrayList.add(new pilihanBahanModel(nama, gambarUrl));
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    adapter.notifyDataSetChanged();
-                },
-                error -> error.printStackTrace());
-
-        Volley.newRequestQueue(this).add(jsonArrayRequest);
-    }
-
-    @Override
-    public void onBahanClick(pilihanBahanModel bahan) {
-        // Dapatkan fragmentBahanTerpilih yang ada
-        fragmentBahanTerpilih fragmentBahanTerpilih = (fragmentBahanTerpilih) fragmentManager.findFragmentById(R.id.fragment_container);
+    // Method untuk menambah bahan yang dipilih
+    public void addBahanToSelected(pilihanBahanModel bahan) {
+        selectedBahanList.add(bahan);
         if (fragmentBahanTerpilih != null) {
-            fragmentBahanTerpilih.addSelectedBahan(bahan);  // Menambahkan bahan yang dipilih ke fragment
+            fragmentBahanTerpilih.updateSelectedBahanList(selectedBahanList);
         }
     }
-
-
-    private void handleBackAction() {
-        if (fragmentManager.getBackStackEntryCount() > 0) {
-            fragmentManager.popBackStack();
-        } else {
-            finish();
-        }
-    }
-
 
 }

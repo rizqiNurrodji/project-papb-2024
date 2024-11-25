@@ -6,7 +6,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -19,17 +18,12 @@ public class rvPilihanBahanAdapter extends RecyclerView.Adapter<rvPilihanBahanAd
 
     private Context context;
     private ArrayList<pilihanBahanModel> pilihanBahanModelArrayList;
-    private OnBahanClickListener onBahanClickListener;
+    private OnBahanClickListener listener;
 
-    // Interface untuk mendengarkan klik bahan
-    public interface OnBahanClickListener {
-        void onBahanClick(pilihanBahanModel bahan);
-    }
-
-    public rvPilihanBahanAdapter(Context context, ArrayList<pilihanBahanModel> pilihanBahanModelArrayList, OnBahanClickListener onBahanClickListener) {
+    public rvPilihanBahanAdapter(Context context, ArrayList<pilihanBahanModel> pilihanBahanModelArrayList, OnBahanClickListener listener) {
         this.context = context;
         this.pilihanBahanModelArrayList = pilihanBahanModelArrayList;
-        this.onBahanClickListener = onBahanClickListener;
+        this.listener = listener;
     }
 
     @NonNull
@@ -41,19 +35,16 @@ public class rvPilihanBahanAdapter extends RecyclerView.Adapter<rvPilihanBahanAd
 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
-        pilihanBahanModel currentBahan = pilihanBahanModelArrayList.get(position);
+        pilihanBahanModel model = pilihanBahanModelArrayList.get(position);
+        holder.tvBahanPilihan.setText(model.getNama());
 
-        // Use Glide to load image into the ImageButton
-        Glide.with(context)
-                .load(currentBahan.getGambarUrl())
-                .into(holder.btBahanPilihan);
+        // Memuat gambar dari drawable
+        int imageResId = context.getResources().getIdentifier(model.getGambar(), "drawable", context.getPackageName());
+        Glide.with(context).load(imageResId).into(holder.btBahanPilihan);
 
-        holder.tvBahanPilihan.setText(currentBahan.getNamaUrl());
-
-        // Set up the click listener for the ImageButton
-        holder.btBahanPilihan.setOnClickListener(v -> {
-            if (onBahanClickListener != null) {
-                onBahanClickListener.onBahanClick(currentBahan);
+        holder.btBahanPilihan.setOnClickListener(view -> {
+            if (listener != null) {
+                listener.onBahanClick(model);
             }
         });
     }
@@ -72,5 +63,9 @@ public class rvPilihanBahanAdapter extends RecyclerView.Adapter<rvPilihanBahanAd
             btBahanPilihan = itemView.findViewById(R.id.btBahanPilihan);
             tvBahanPilihan = itemView.findViewById(R.id.tvBahanPilihan);
         }
+    }
+
+    public interface OnBahanClickListener {
+        void onBahanClick(pilihanBahanModel bahan);
     }
 }

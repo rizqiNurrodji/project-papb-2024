@@ -2,20 +2,18 @@ package com.example.bwurger;
 
 public class pilihanBahanModel {
     public String nama;
-    public String gambarUrl;
+    public String gambar;
 
-    public pilihanBahanModel(String nama, String gambarUrl) {
+    public pilihanBahanModel(String nama, String gambar) {
         this.nama = nama;
-        this.gambarUrl = gambarUrl;
+        this.gambar = gambar;
     }
 
-    public String getGambarUrl() {
-        return gambarUrl;
+    public String getGambar() {
+        return gambar;
     }
 
-    public String getNamaUrl() {
+    public String getNama() {
         return nama;
     }
-
-
 }
