@@ -24,6 +24,7 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
 
     private Button btRoti, btDaging, btPelengkap, btSaus;
+    private Button btBuatanSaya, btTersimpan;
     private ImageButton btBack;
     private BottomSheetDialog bottomSheetDialog;
     private ArrayList<pilihanBahanModel> pilihanBahanModelArrayList = new ArrayList<>();
@@ -31,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
     private Button lastSelectedButton; // Menyimpan tombol terakhir yang dipilih
     private ArrayList<pilihanBahanModel> selectedBahanList = new ArrayList<>(); // Daftar bahan yang dipilih
     private fragmentBahanTerpilih fragmentBahanTerpilih;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +44,8 @@ public class MainActivity extends AppCompatActivity {
         btPelengkap = findViewById(R.id.btPelengkap);
         btSaus = findViewById(R.id.btSaus);
         btBack = findViewById(R.id.btBack);
+        btBuatanSaya = findViewById(R.id.btBuatanSaya);
+        btTersimpan = findViewById(R.id.btTersimpan);
 
         // Inisialisasi adapter
         adapter = new rvPilihanBahanAdapter(this, pilihanBahanModelArrayList, new rvPilihanBahanAdapter.OnBahanClickListener() {
@@ -62,6 +66,21 @@ public class MainActivity extends AppCompatActivity {
         btDaging.setOnClickListener(view -> handleButtonClick(btDaging, "Daging"));
         btPelengkap.setOnClickListener(view -> handleButtonClick(btPelengkap, "Pelengkap"));
         btSaus.setOnClickListener(view -> handleButtonClick(btSaus, "Saus"));
+
+        btBuatanSaya.setOnClickListener(view -> {loadFragmentBahanTerpilih();});
+
+        btTersimpan.setOnClickListener(view -> {
+            // Ubah warna latar belakang tombol yang diklik
+            btTersimpan.setBackgroundColor(getResources().getColor(R.color.btYellow));
+            btBuatanSaya.setBackgroundColor(getResources().getColor(R.color.white)); // Kembalikan warna tombol lainnya
+
+            // Ganti fragment
+            FragmentTransaction ft = fragmentManager.beginTransaction(); //
+            ft.replace(R.id.fragment_container, new fragmentBurgerTersimpan());
+            ft.addToBackStack(null);
+            ft.commit();
+        });
+
     }
 
     private void handleButtonClick(Button selectedButton, String kategori) {
@@ -113,6 +132,8 @@ public class MainActivity extends AppCompatActivity {
         if (fragmentBahanTerpilih == null) {
             fragmentBahanTerpilih = new fragmentBahanTerpilih();
         }
+        btBuatanSaya.setBackgroundColor(getResources().getColor(R.color.btYellow));
+        btTersimpan.setBackgroundColor(getResources().getColor(R.color.white));
 
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         fragmentTransaction.replace(R.id.fragment_container, fragmentBahanTerpilih);
@@ -134,10 +155,24 @@ public class MainActivity extends AppCompatActivity {
 
     // Method untuk menambah bahan yang dipilih
     public void addBahanToSelected(pilihanBahanModel bahan) {
-        selectedBahanList.add(bahan);
+        // Periksa apakah bahan sudah ada di daftar bahan yang dipilih
+        boolean exists = false;
+        for (pilihanBahanModel selectedBahan : selectedBahanList) {
+            if (selectedBahan.getGambar().equals(bahan.getGambar())) {
+                exists = true;
+                break;
+            }
+        }
+
+        if (!exists) {
+            selectedBahanList.add(bahan);
+        }
+
+        // Jika fragmentBahanTerpilih tidak null, update RecyclerView
         if (fragmentBahanTerpilih != null) {
             fragmentBahanTerpilih.updateSelectedBahanList(selectedBahanList);
         }
     }
+
 
 }
